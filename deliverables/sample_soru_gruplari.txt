@@ -1,0 +1,45 @@
+S55: ABD bağımsızlığını hangi yıl kazanmıştır?
+C48: 1777
+İlintili Paragraf: 1108
+
+S1019: Almanya'da hangi iklim şartları hakimdir?
+S1020: Almanya'da hangi iklimler görülür?
+C785: Ilıman okyanusal ve karasal
+İlintili Paragraf: 3585
+
+S2083: Türkiye'de ilk silah fabrikası hangi ilde kurulmuştur?
+C1616: Kırıkkale
+İlintili Paragraf: 7260
+
+S1007: Dünya genelinde bir yıl içinde meydana gelen doğum sayısının toplam nüfusa oranına ne denir?
+S1008: Dünya genelinde bir yıl içinde meydana gelen doğum sayısının toplam nüfusa oranına ne ad verilir?
+C778: Doğum oranı
+İlintili Paragraf: 5372
+
+S1412: Almanya'nın 1850 yılındaki kömür üretimi ne kadardır?
+S1413: Almanya'da 1850 yılında ne kadar kömür üretilmiştir?
+C1088: 7 milyon ton
+İlintili Paragraf: 3593
+
+S848: Ülkemizde demir çelik fabrikaları nerelerde bulunmaktadır?
+C653: Ereğli (Zonguldak) Karabük ve İskenderun
+İlintili Paragraf: 229
+
+S319: Kuzey yarım kürede kuzeyden esen rüzgarlar etkili oldukları bölgelerde hava sıcaklığına nasıl etki eder?
+C269: Düşürür
+İlintili Paragraf: 3661
+
+S1025: Almanya'da ormanlar, ülke topraklarının yaklaşık ne kadarını oluşturur?
+S1026: Almanya'nın yaklaşık ne kadarlık kısmı ormanlardan oluşur?
+S1027: Ormanlar Almanya topraklarının ne kadarlık kısmını oluşturur?
+C788: Üçte bir
+İlintili Paragraf: 3585
+
+S6013: Güneş sistemindeki 5. büyük gezegenin adı nedir?
+S6014: Büyüklük bakımında Güneş sisteminde 5. sırada olan gezegenin adı nedir?
+C6013: Dünya
+İlintili Paragraf: 6032
+
+S1461: Nüfusun yoğun olduğu Marmara, Ege, Akdeniz ve İç Anadolu’da ise sığır yetiştiriciliği hangi şekilde yapılmaktadır?
+C1123: Ahır hayvancılığı
+İlintili Paragraf: 5489
