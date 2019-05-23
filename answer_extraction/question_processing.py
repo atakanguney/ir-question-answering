@@ -76,7 +76,7 @@ def find_q_focus(question):
 
     Parameters
     ----------
-    question: stanfordnlp.Pipeline.Document
+    question: stanfordnlp.pipeline.doc.Document
 
     Returns
     -------

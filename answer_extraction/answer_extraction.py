@@ -28,6 +28,18 @@ def find_type_focus_parsed(question):
 
 
 def construct_bigrams(words):
+    """Construct Bigrams
+
+    Parameters
+    ----------
+    words: list
+        List of words
+
+    Returns
+    -------
+    list
+        List of triples; (dependent, relation, head)
+    """
     word_list = [word.text for word in words]
     word_list.insert(0, "ROOT")
     return [
@@ -37,6 +49,20 @@ def construct_bigrams(words):
 
 
 def s(a, b):
+    """Binary 's' function
+
+    Formulation has been taken from [https://www.cmpe.boun.edu.tr/~ozgur/papers/617_Paper.pdf]
+
+    Parameters
+    ----------
+    a: str
+    b: str
+
+    Returns
+    -------
+    1 if a equals b
+    0 otw.
+    """
     if a == b:
         return 1
     else:
@@ -44,6 +70,22 @@ def s(a, b):
 
 
 def q(a, b, theta=2):
+    """Binary 'q' function
+
+    Formulation has been taken from [https://www.cmpe.boun.edu.tr/~ozgur/papers/617_Paper.pdf]
+
+    Parameters
+    ----------
+    a: str
+    b: str
+    theta: float
+        Optional
+
+    Returns
+    -------
+    theta if a equals b
+    1 otherwise
+    """
     if a == b:
         return theta
     else:
@@ -51,13 +93,48 @@ def q(a, b, theta=2):
 
 
 def sim(bigram1, bigram2):
+    """Similarity function between bigrams
+    
+    Formulation has been taken from [https://www.cmpe.boun.edu.tr/~ozgur/papers/617_Paper.pdf]
+
+    Parameters
+    ----------
+    bigram1: list
+        List of bigrams
+    
+    bigram2: list
+        List of bigrams
+
+
+    Returns
+    -------
+    float
+        Score for 2 bigrams
+    """
     dep_1, type_1, head_1 = bigram1
     dep_2, type_2, head_2 = bigram2
     
     return (s(dep_1, dep_2) + s(head_1, head_2)) * q(type_1, type_2)
 
 
-def calculate_tree_distance(sentence, parsed_question):
+def calculate_tree_similarity(sentence, parsed_question):
+    """Calculate Dependency Tree Similarity
+
+    Formulation has been taken from [https://www.cmpe.boun.edu.tr/~ozgur/papers/617_Paper.pdf]
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains answer
+
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    float
+        Similarity between dependency trees of sentence and question
+    """
     sent_bigrams = construct_bigrams(sentence.words)
     quest_bigrams = construct_bigrams(parsed_question.sentences[0].words)
 
@@ -70,6 +147,22 @@ def calculate_tree_distance(sentence, parsed_question):
 
 
 def calculate_focus_score(sentence, question_focus):
+    """Calculate Focus Words Score
+
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains answer
+    
+    question_focus: list
+        List of focused words
+
+    Returns 
+    -------
+    float
+        Similarity score based on focused words of questionf
+    """
     score = 0
     sentence_lemmas = [word.lemma for word in sentence.words]
     for lemma in question_focus:
@@ -79,11 +172,39 @@ def calculate_focus_score(sentence, question_focus):
     return score / len(question_focus) if question_focus else 0
 
 
-def calculate_overall_scores(tree_dists, focus_scores):
-    return [0.8 * tree_dist + 0.2 * focus_score for tree_dist, focus_score in zip(tree_dists, focus_scores)]
+def calculate_overall_scores(tree_similarities, focus_scores):
+    """Combining Tree Similarity and Focus Score
+
+
+    Parameters
+    ----------
+    tree_similarities: list
+        Dependency tree similarities between question and sentences of passage
+    
+    focus_score: list
+        Focus word similarityies between question and sentences of passage
+
+    Returns
+    -------
+    list
+        Weighted averaged scores
+    """
+    return [0.8 * tree_dist + 0.2 * focus_score for tree_dist, focus_score in zip(tree_similarities, focus_scores)]
 
 
 def find_root(sentence):
+    """Find Root Index
+    
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+
+    Returns
+    -------
+    int
+        Greater than 0 if sentence has root
+        0 otherwise
+    """
     for word in sentence.words:
         if word.governor == 0:
             return int(word.index)
@@ -91,6 +212,17 @@ def find_root(sentence):
 
 
 def find_subject(sentence):
+    """Find Subjects of Sentence
+    
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+
+    Return 
+    ------
+    list
+        Indices 
+    """
     root_idx = find_root(sentence)
     subjects = []
     if root_idx > 0:
@@ -102,6 +234,22 @@ def find_subject(sentence):
 
 
 def find_related_words(sentence, idx):
+    """Find Related Words
+    
+    Finds related words which head in the tree is in idx
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+
+    idx: list
+        List of indices
+
+    Returns
+    -------
+    list
+        List of enhanced indices
+    """
     idx_ = []
 
     while idx_ != idx:
@@ -114,23 +262,102 @@ def find_related_words(sentence, idx):
 
 
 def construct_answer_from_idx(sentence, idx):
+    """Construct Answer from Index List
+    
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+
+    idx: list
+        List of indices
+
+    Returns
+    -------
+    str
+        Answer
+    """
     return " ".join([word.text for word in sentence.words if int(word.index) in idx])
 
 
 def check_word_in_question(word, question):
+    """Check Word
+    
+    Checks whether given word is in question or not
+
+    Parameters
+    ----------
+    word: stanfordnlp.pipeline.doc.Word
+        Word to check
+
+    question: str
+        Question
+
+    Returns
+    -------
+    True if word is included
+    False otw.
+    """
     return word.text.casefold() in question.casefold() 
 
 
 def construct_sentence(sentence, question):
+    """Construct Answer
+    
+    Constructs answer from sentence
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that has the answer
+    
+    question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     return " ".join([word.text for word in sentence.words if not check_word_in_question(word, question) and word.upos != "PUNCT"])
 
 
 def contains_eachother(word1, word2):
+    """Check Containing of 2 words
+    
+    Checks whether word1 is contained in word2 or word2 is contained in word1
+
+    Parameters
+    ----------
+    word1: stanfordnlp.pipeline.doc.Word
+
+    word2: stanfordnlp.pipeline.doc.Word
+
+    Returns
+    -------
+    True if word1 is contained by word2 or otherwise
+    False otw.
+    """
     return word1.text in word2.text or word2.text in word1.text \
            or word1.lemma in word2.lemma or word2.lemma in word1.lemma
 
 
 def find_left_child(sentence, idx):
+    """Find Left Child
+    
+    Finds left child of element which has index `idx`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that has the answer
+
+    idx: int
+
+    Returns
+    -------
+    int
+        Index of left child
+    """
     for word in sentence.words:
         if word.governor == idx and word.dependency_relation == "obl":
             return int(word.index)
@@ -139,6 +366,26 @@ def find_left_child(sentence, idx):
 
 
 def find_relation(sentence, idx, relation):
+    """Find Related Word
+
+    Find related word for given `idx` for given `relation`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains answer
+
+    idx: int
+        Index for base word
+
+    relation: str
+        Dependency relation
+
+    Returns
+    -------
+    list
+        list of related words    
+    """
     related_idx = []
     for word in sentence.words:
         if word.governor == idx and word.dependency_relation == relation:
@@ -148,6 +395,23 @@ def find_relation(sentence, idx, relation):
 
 
 def entity_answer_extractor(sentence, parsed_question):
+    """Extract Answer for Entity Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     subject_idx = find_subject(sentence)
     related_idx = find_related_words(sentence, subject_idx)
     
@@ -158,6 +422,23 @@ def entity_answer_extractor(sentence, parsed_question):
 
 
 def location_answer_extractor(sentence, parsed_question):
+    """Extract Answer for Location Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     question_sent = parsed_question.sentences[0]
     sent_root_idx = find_root(sentence)
     quest_root_idx = find_root(question_sent)
@@ -186,26 +467,111 @@ def location_answer_extractor(sentence, parsed_question):
 
 
 def human_answer_extractor(sentence, parsed_question):
+    """Extract Answer for Human Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     # TODO: Improve this extractor
     return entity_answer_extractor(sentence, parsed_question.text)
 
 
 def numeric_answer_extractor(sentence, parsed_question):
+    """Extract Answer for Numeric Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     # TODO: Improve this extractor
     return construct_sentence(sentence, parsed_question.text)
 
 
 def reason_answer_extractor(sentence, parsed_question):
+    """Extract Answer for Reason Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     # TODO: Improve this extractor
     return construct_sentence(sentence, parsed_question.text)
 
 
 def yes_no_answer_extractor(sentence, parsed_question):
+    """Extract Answer for YesNo Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     # TODO: Improve this extractor
     return construct_sentence(sentence, parsed_question.text)
 
 
 def other_answer_extractor(sentence, parsed_question):
+    """Extract Answer for Other Type
+
+    Extracts answer for given `sentence` and `parsed_question`
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+    
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     return construct_sentence(sentence, parsed_question.text)
 
 
@@ -220,22 +586,63 @@ answer_extractors = {
 }
 
 def get_answer(question_type, sentence, parsed_question):
+    """Get Answer
+
+    Parameters
+    ----------
+    question_type: str
+        Type of Question
+    
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains the answer
+
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     answer_extractor = answer_extractors[question_type]
     
     return answer_extractor(sentence, parsed_question)
 
 
 def extract_answer(passage, question_type, question_focus, parsed_question):
+    """Extract Answer
+    
+    Extracts answer from passage for given `question_type`, `question_focus`, `parsed_question` 
+
+    Parameters
+    ----------
+    passage: str
+        Passage that consits of sentences
+
+    question_type: str
+        Question Type
+
+    question_focus: list
+        List of words that are focused on question
+
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
     parsed_pas = nlp(passage)
-    tree_dists = []
+    tree_sims = []
     for sentence in parsed_pas.sentences:
-        tree_dists.append(calculate_tree_distance(sentence, parsed_question))
+        tree_sims.append(calculate_tree_similarity(sentence, parsed_question))
     
     focus_scores = []
     for sentence in parsed_pas.sentences:
         focus_scores.append(calculate_focus_score(sentence, question_focus))
 
-    scores = calculate_overall_scores(tree_dists, focus_scores)
+    scores = calculate_overall_scores(tree_sims, focus_scores)
     idx = scores.index(max(scores))
 
     answer = get_answer(question_type, parsed_pas.sentences[idx], parsed_question)
@@ -244,6 +651,23 @@ def extract_answer(passage, question_type, question_focus, parsed_question):
 
 
 def find_answer(question, passage):
+    """Find Answer
+    
+    Finds answer of question in `passage`
+
+    Parameters
+    ----------
+    question: str
+        Question
+
+    passage: str
+        Passage
+
+    Returns
+    -------
+    str
+        Answer
+    """
     question_type, question_focus, parsed_question = find_type_focus_parsed(question)
     answer = extract_answer(passage, question_type, question_focus, parsed_question)
     
