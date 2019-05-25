@@ -78,8 +78,7 @@ def retrieve_questions(question_groups):
         for i in range(len(qg.questions)):
             qa_groups = { 'q_id' : qg.questions[i].idx, 'q' : qg.questions[i].text.text,'a_id' : qg.answer.idx, 'a' : qg.answer.text, 'rel_par' : qg.related_par_id}
             qa.append(qa_groups)
-    questions = [q['q'] for q in qa]
-    return questions
+    return qa
 #%%
 def fit_count_occurence_matrix(train_data):
     """Fit and transform the Vectorizer as count vectors
@@ -164,9 +163,9 @@ def transform_matrix(vector, test_data):
     -------
     transformed vector
     """
-    return vector.transform(test_data).toarray()
+    return vector.transform(test_data)
 #%%
-def find_similar_paragraphs(n, vector1, vector2, paragraphs):
+def find_similar_paragraphs(n, vector1, vector2, passages):
     """Compares 2 different vectors and find the most similar n paragraphs using cosine similarity
     Parameters
     ----------
@@ -176,20 +175,24 @@ def find_similar_paragraphs(n, vector1, vector2, paragraphs):
         
     vector2: matrix
 
-    paragraphs : list
+    passages : dict
     
     Returns
     -------
     list
         similar_paragraphs
     """
+    paragraphs = retrieve_paragraphs(passages)
+
     similar_paragraphs = []
+    similar_paragraph_ids = []
     cosine_similarities = cosine_similarity(vector1, vector2)
     for idx, i in enumerate(cosine_similarities):
         x = cosine_similarities[idx].argsort()[-n:]
         for idx_ in x:
             similar_paragraphs.append(paragraphs[idx_])
-    return similar_paragraphs
+            similar_paragraph_ids.append([key  for (key, value) in passages.items() if value.text == paragraphs[idx_]])
+    return similar_paragraphs, similar_paragraph_ids
 #%%
 def analysis(mode, train_data, test_data, paragraphs, n, analyzer):
     """Builds model with given mode and perform analysis according to that mode.
@@ -221,14 +224,16 @@ def analysis(mode, train_data, test_data, paragraphs, n, analyzer):
         raise ValueError('Mode should be either count, norm_count or tf_idf')
         
     transformed_vector = transform_matrix(vector, test_data)
-    similar_paragraphs = find_similar_paragraphs(n, transformed_vector, matrix, paragraphs)
-    return similar_paragraphs
+    similar_paragraphs, similar_paragraph_ids = find_similar_paragraphs(n, transformed_vector, matrix, passages)
+    return similar_paragraphs, similar_paragraph_ids
 #%% 
 if __name__ == "__main__":
     passages = load_passages("../preprocessed_data/passages.pickle")
     question_groups = load_question_groups("../preprocessed_data/question_groups.pickle")
     passage_pars = retrieve_paragraphs(passages)
-    questions = retrieve_questions(question_groups)[:10]
+    question_answer = retrieve_questions(question_groups)
+    questions = [q['q'] for q in question_answer]
+    
     whole_corpus = passage_pars + questions
     
-    similar_paragraphs = analysis(mode='tf_idf',train_data=passage_pars, test_data=questions, paragraphs=passage_pars, n=1, analyzer='word')
+    similar_paragraphs, similar_paragraph_ids = analysis(mode='tf_idf',train_data=passage_pars, test_data=questions, passages=passages, n=1, analyzer='word')
