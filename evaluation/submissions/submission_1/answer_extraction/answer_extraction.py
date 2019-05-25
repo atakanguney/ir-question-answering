@@ -19,7 +19,7 @@ from .util import (construct_bigrams,
                    construct_answer_from_idx,
                    calculate_tree_similarity,
                    calculate_focus_score,
-                   calculate_focus_score,
+                   calculate_overall_scores,
                    construct_sentence)
 
 nlp = stanfordnlp.Pipeline(lang="tr")

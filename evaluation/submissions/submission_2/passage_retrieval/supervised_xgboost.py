@@ -17,12 +17,8 @@ from passage_retrieval.paragraph_prediction import (find_similar_paragraphs,
                                                     retrieve_questions,
                                                     transform_matrix)
 
-
-xgb_model = xgb.XGBRegressor()
-xgb_model.load_model("xgb_model.model")
-
 #%%
-def predict_passage(question, passages):
+def predict_passage(question, passages, xgb_model):
     passage_pars = list(passages.values())
     
     X_vector, X_matrix, X_tf_idf_matrix_df = fit_tf_idf_matrix(passage_pars, 'word')
