@@ -5,24 +5,17 @@ Created on Sat May 25 17:49:22 2019
 
 @author: starlang
 """
-import pickle
 import numpy as np
-import xgboost as xgb
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, mean_squared_error
 
 from passage_retrieval.paragraph_prediction import (find_similar_paragraphs,
                                                     fit_tf_idf_matrix,
-                                                    retrieve_questions,
                                                     transform_matrix)
 
 
-xgb_model = xgb.XGBRegressor()
-xgb_model.load_model("xgb_model.model")
+
 
 #%%
-def predict_passage(question, passages):
+def predict_passage(question, passages, xgb_model):
     passage_pars = list(passages.values())
     
     X_vector, X_matrix, X_tf_idf_matrix_df = fit_tf_idf_matrix(passage_pars, 'word')
