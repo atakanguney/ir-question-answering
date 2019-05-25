@@ -182,7 +182,7 @@ def find_similar_paragraphs(n, vector1, vector2, passages):
     list
         similar_paragraphs
     """
-    paragraphs = retrieve_paragraphs(passages)
+    paragraphs = list(passages.values())
 
     similar_paragraphs = []
     similar_paragraph_ids = []
@@ -191,7 +191,7 @@ def find_similar_paragraphs(n, vector1, vector2, passages):
         x = cosine_similarities[idx].argsort()[-n:]
         for idx_ in x:
             similar_paragraphs.append(paragraphs[idx_])
-            similar_paragraph_ids.append([key  for (key, value) in passages.items() if value.text == paragraphs[idx_]])
+            similar_paragraph_ids.extend([key  for (key, value) in passages.items() if value == paragraphs[idx_]])
     return similar_paragraphs, similar_paragraph_ids
 #%%
 def analysis(mode, train_data, test_data, passages, n, analyzer):
@@ -204,7 +204,7 @@ def analysis(mode, train_data, test_data, passages, n, analyzer):
         traning data in which train counts are calculated
     test_data: str
         test data in which test counts are calculated
-    paragraphs: list
+    passages: list
     n : int
         number of similar paragraphs
     analyzer: str
