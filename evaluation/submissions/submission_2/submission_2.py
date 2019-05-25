@@ -6,6 +6,9 @@ from pathlib import Path
 import xgboost as xgb
 
 import preprocessing
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 from passage_retrieval.supervised_xgboost import predict_passage
 from answer_extraction.answer_extraction import find_answer
 

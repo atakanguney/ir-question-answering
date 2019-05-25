@@ -5,6 +5,10 @@ import pickle
 from pathlib import Path
 
 import preprocessing
+
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 from passage_retrieval.paragraph_prediction import analysis
 from answer_extraction.answer_extraction import find_answer
 
