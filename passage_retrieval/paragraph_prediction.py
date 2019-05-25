@@ -194,7 +194,7 @@ def find_similar_paragraphs(n, vector1, vector2, passages):
             similar_paragraph_ids.append([key  for (key, value) in passages.items() if value.text == paragraphs[idx_]])
     return similar_paragraphs, similar_paragraph_ids
 #%%
-def analysis(mode, train_data, test_data, paragraphs, n, analyzer):
+def analysis(mode, train_data, test_data, passages, n, analyzer):
     """Builds model with given mode and perform analysis according to that mode.
     Parameters
     ----------
