@@ -187,11 +187,12 @@ def find_similar_paragraphs(n, vector1, vector2, passages):
     similar_paragraphs = []
     similar_paragraph_ids = []
     cosine_similarities = cosine_similarity(vector1, vector2)
+    inverse_passages = {value: key for key, value in passages.items()}
     for idx, i in enumerate(cosine_similarities):
         x = cosine_similarities[idx].argsort()[-n:]
         for idx_ in x:
             similar_paragraphs.append(paragraphs[idx_])
-            similar_paragraph_ids.extend([key  for (key, value) in passages.items() if value == paragraphs[idx_]])
+            similar_paragraph_ids.append(inverse_passages[paragraphs[idx_]])
     return similar_paragraphs, similar_paragraph_ids
 #%%
 def analysis(mode, train_data, test_data, passages, n, analyzer):
