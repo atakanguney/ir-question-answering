@@ -389,8 +389,12 @@ def get_answer(question_type, sentence, parsed_question):
         Answer
     """
     answer_extractor = answer_extractors[question_type]
-    
-    return answer_extractor(sentence, parsed_question)
+    answer = answer_extractor(sentence, parsed_question)
+
+    if answer:
+        return answer
+    else:
+        return reconstruct_sentence(sentence)
 
 
 def extract_answer(passage, question_type, question_focus, parsed_question):
@@ -400,7 +404,7 @@ def extract_answer(passage, question_type, question_focus, parsed_question):
 
     Parameters
     ----------
-    passage: str
+    passage: stanfordnlp.pipeline.doc.Document
         Passage that consits of sentences
 
     question_type: str
@@ -417,19 +421,18 @@ def extract_answer(passage, question_type, question_focus, parsed_question):
     str
         Answer
     """
-    parsed_pas = nlp(passage)
     tree_sims = []
-    for sentence in parsed_pas.sentences:
+    for sentence in passage.sentences:
         tree_sims.append(calculate_tree_similarity(sentence, parsed_question))
     
     focus_scores = []
-    for sentence in parsed_pas.sentences:
+    for sentence in passage.sentences:
         focus_scores.append(calculate_focus_score(sentence, question_focus))
 
     scores = calculate_overall_scores(tree_sims, focus_scores)
     idx = scores.index(max(scores))
 
-    answer = get_answer(question_type, parsed_pas.sentences[idx], parsed_question)
+    answer = get_answer(question_type, passage.sentences[idx], parsed_question)
     
     return answer
 
@@ -444,7 +447,7 @@ def find_answer(question, passage):
     question: str
         Question
 
-    passage: str
+    passage: stanfordnlp.pipeline.doc.Document
         Passage
 
     Returns
@@ -456,10 +459,3 @@ def find_answer(question, passage):
     answer = extract_answer(passage, question_type, question_focus, parsed_question)
     
     return answer
-
-
-if __name__ == "__main__":
-    quest_ = '2015 yılı Birleşmiş Milletler verilerine göre dünyadaki ortalama yaşam süresi kaç yıldır?'
-    pass_ = "Ortalama yaşam süresi, ülkelerin sağlıktaki seviyeleri ile doğrudan ilişkili ve gelişmişliğin göstergelerinden biridir. Dünyadaki ortalama yaşam süresi 2015 yılı Birleşmiş Milletler verilerine göre 72 yıldır. Gelişmiş bir ülke olan Japonya'da ortalama yaşam süresinin 84 yıl, az gelişmiş bir ülke olan Nijer'de ise 59 yıl olduğu görülmektedir."
-
-    print(find_answer(quest_, pass_))
