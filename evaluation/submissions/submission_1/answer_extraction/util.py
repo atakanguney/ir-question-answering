@@ -294,3 +294,99 @@ def extract_answer_with_idx(sentence, idx, question):
 def reconstruct_sentence(sentence):
     # TODO: Doc-String
     return " ".join([word.text for word in sentence.words])
+
+
+def calculate_tree_similarity(sentence, parsed_question):
+    """Calculate Dependency Tree Similarity
+
+    Formulation has been taken from [https://www.cmpe.boun.edu.tr/~ozgur/papers/617_Paper.pdf]
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains answer
+
+    parsed_question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    float
+        Similarity between dependency trees of sentence and question
+    """
+    sent_bigrams = construct_bigrams(sentence.words)
+    quest_bigrams = construct_bigrams(parsed_question.sentences[0].words)
+
+    score = 0
+    for sent_bigram in sent_bigrams:
+        for quest_bigram in quest_bigrams:
+            score += sim(sent_bigram, quest_bigram)
+
+    return score / (len(sent_bigrams) + len(quest_bigrams))
+
+
+def calculate_focus_score(sentence, question_focus):
+    """Calculate Focus Words Score
+
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that contains answer
+    
+    question_focus: list
+        List of focused words
+
+    Returns 
+    -------
+    float
+        Similarity score based on focused words of questionf
+    """
+    score = 0
+    sentence_lemmas = [word.lemma for word in sentence.words]
+    for lemma in question_focus:
+        if lemma in sentence_lemmas:
+            score += 1
+
+    return score / len(question_focus) if question_focus else 0
+
+
+def calculate_overall_scores(tree_similarities, focus_scores):
+    """Combining Tree Similarity and Focus Score
+
+
+    Parameters
+    ----------
+    tree_similarities: list
+        Dependency tree similarities between question and sentences of passage
+    
+    focus_score: list
+        Focus word similarityies between question and sentences of passage
+
+    Returns
+    -------
+    list
+        Weighted averaged scores
+    """
+    return [0.8 * tree_dist + 0.2 * focus_score for tree_dist, focus_score in zip(tree_similarities, focus_scores)]
+
+
+def construct_sentence(sentence, question):
+    """Construct Answer
+    
+    Constructs answer from sentence
+
+    Parameters
+    ----------
+    sentence: stanfordnlp.pipeline.doc.Sentence
+        Sentence that has the answer
+    
+    question: stanfordnlp.pipeline.doc.Document
+        Question
+
+    Returns
+    -------
+    str
+        Answer
+    """
+    return " ".join([word.text for word in sentence.words if not check_word_in_question(word, question) and word.upos != "PUNCT"])
